@@ -1,5 +1,5 @@
-import puppeteer from 'puppeteer';
-import { IncomingMessage, ServerResponse } from 'http';
+import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer-core';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -18,13 +18,16 @@ export default async function handler(req, res) {
 
     try {
       const browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: chromium.args,
+        defaultViewport: { width: 1350, height: 1080 },
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
       });
-      const page = await browser.newPage();
-      await page.setViewport({ width: 1350, height: 1080 });
-      await page.setContent(html, { waitUntil: 'networkidle0' });
 
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: 'networkidle0' });
       const imageBuffer = await page.screenshot({ type: 'png' });
+
       await browser.close();
 
       res.setHeader('Content-Type', 'image/png');
