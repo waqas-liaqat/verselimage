@@ -1,4 +1,3 @@
-// File: api/render.js
 import puppeteer from 'puppeteer';
 
 export default async function handler(req, res) {
@@ -12,24 +11,28 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'HTML is required in the request body' });
   }
 
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
-  const page = await browser.newPage();
+  let browser;
 
   try {
-    await page.setViewport({ width: 1350, height: 1080 });
-    await page.setContent(html, { waitUntil: 'networkidle0' });
+    browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      headless: 'new'
+    });
 
-    const screenshotBuffer = await page.screenshot({ type: 'png' });
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1350, height: 1080 });
+    await page.setContent(html, { waitUntil: 'domcontentloaded' });
+
+    const buffer = await page.screenshot({ type: 'png' });
 
     res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Content-Disposition', 'inline; filename=\"banner.png\"');
-    res.status(200).send(screenshotBuffer);
+    res.setHeader('Content-Disposition', 'inline; filename="banner.png"');
+    res.status(200).send(buffer);
+
   } catch (error) {
-    console.error('Rendering error:', error);
+    console.error('Error rendering HTML:', error);
     res.status(500).json({ error: 'Rendering failed', details: error.message });
   } finally {
-    await browser.close();
+    if (browser) await browser.close();
   }
 }
