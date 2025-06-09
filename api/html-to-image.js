@@ -1,6 +1,6 @@
 import { buffer } from 'micro';
 import chromium from 'chrome-aws-lambda';
-import puppeteerCore from 'puppeteer-core';
+import puppeteer from 'puppeteer-core';
 
 export const config = {
   api: {
@@ -10,26 +10,28 @@ export const config = {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    res.status(405).send('Method Not Allowed');
-    return;
+    return res.status(405).send('Only POST allowed');
   }
 
   let html;
   try {
-    const raw = await buffer(req);
-    const data = JSON.parse(raw.toString());
-    html = data.html;
-    if (!html) throw new Error('Missing html');
-  } catch (e) {
-    res.status(400).send('Invalid JSON body');
-    return;
+    const rawBody = await buffer(req);
+    const json = JSON.parse(rawBody.toString());
+    html = json.html;
+
+    if (!html) {
+      return res.status(400).send('Missing HTML in body');
+    }
+  } catch (err) {
+    return res.status(400).send('Invalid request body');
   }
 
   let browser = null;
+
   try {
-    browser = await puppeteerCore.launch({
+    browser = await puppeteer.launch({
       args: chromium.args,
-      executablePath: await chromium.executablePath(),
+      executablePath: await chromium.executablePath() || '/usr/bin/chromium-browser',
       headless: chromium.headless,
     });
 
@@ -42,10 +44,10 @@ export default async function handler(req, res) {
     await browser.close();
 
     res.setHeader('Content-Type', 'image/png');
-    res.status(200).send(imageBuffer);
+    return res.status(200).send(imageBuffer);
   } catch (err) {
     if (browser) await browser.close();
-    console.error(err);
-    res.status(500).send('Server error');
+    console.error('Error during screenshot:', err);
+    return res.status(500).send('Server error while rendering image');
   }
 }
