@@ -1,10 +1,9 @@
 {
-  "name": "html-to-image-tool",
+  "name": "html-to-image",
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "chrome-aws-lambda": "^10.1.0",
-    "puppeteer-core": "^10.1.0",
+    "puppeteer": "^21.3.8",
     "micro": "^9.3.4"
   }
 }

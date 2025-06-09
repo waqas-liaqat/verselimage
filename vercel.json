@@ -1,8 +1,6 @@
 {
   "version": 2,
-  "functions": {
-    "api/html-to-image.js": {
-      "maxDuration": 60
-    }
-  }
+  "builds": [
+    { "src": "api/html-to-image.js", "use": "@vercel/node" }
+  ]
 }
