@@ -1,0 +1,13 @@
+{
+  "name": "html-to-image",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "api/render.js",
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "puppeteer": "^21.3.8"
+  }
+}

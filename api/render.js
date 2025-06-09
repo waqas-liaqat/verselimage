@@ -1,0 +1,37 @@
+import puppeteer from 'puppeteer';
+import { IncomingMessage, ServerResponse } from 'http';
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Only POST allowed' });
+  }
+
+  const chunks = [];
+  req.on('data', chunk => chunks.push(chunk));
+  req.on('end', async () => {
+    const body = Buffer.concat(chunks).toString();
+    const { html } = JSON.parse(body);
+
+    if (!html) {
+      return res.status(400).json({ error: 'HTML content missing' });
+    }
+
+    try {
+      const browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
+      const page = await browser.newPage();
+      await page.setViewport({ width: 1350, height: 1080 });
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+
+      const imageBuffer = await page.screenshot({ type: 'png' });
+      await browser.close();
+
+      res.setHeader('Content-Type', 'image/png');
+      res.send(imageBuffer);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Rendering failed', detail: error.message });
+    }
+  });
+}
