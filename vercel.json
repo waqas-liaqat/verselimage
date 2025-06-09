@@ -1,10 +1,15 @@
 {
-  "functions": {
-    "api/render.js": {
-      "runtime": "edge",
-      "memory": 1024,
-      "maxDuration": 10
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/render.js",
+      "use": "@vercel/node"
     }
-  },
-  "buildCommand": "npx playwright install chromium"
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1.js"
+    }
+  ]
 }
