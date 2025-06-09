@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "functions": {
+    "api/html-to-image.js": {
+      "maxDuration": 60
+    }
+  }
+}
