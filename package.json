@@ -1,23 +1,21 @@
 {
   "name": "html-to-image-tool",
   "version": "1.0.0",
-  "description": "Convert HTML to 1350x1080 image using Playwright, hosted on Vercel",
+  "description": "Convert HTML to 1350x1080 image using Puppeteer, hosted on Vercel",
   "main": "api/render.js",
   "scripts": {
-    "build": "npx playwright install chromium",
     "start": "vercel dev"
   },
   "dependencies": {
-    "playwright": "^1.44.0"
+    "puppeteer": "^21.3.8"
   },
-  "devDependencies": {},
   "engines": {
     "node": ">=16"
   },
   "keywords": [
     "html",
     "image",
-    "playwright",
+    "puppeteer",
     "vercel",
     "n8n"
   ],
