@@ -1,18 +1,22 @@
-// api/generate-banner.js
+// /api/html-to-image.js
 
-const chromium = require('chrome-aws-lambda');
+import chromium from 'chrome-aws-lambda';
+import { NextResponse } from 'next/server';
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
+    res.status(405).json({ error: 'Method Not Allowed' });
+    return;
   }
 
   const { html } = req.body;
   if (!html) {
-    return res.status(400).json({ error: 'Missing HTML input' });
+    res.status(400).json({ error: 'Missing HTML content' });
+    return;
   }
 
   let browser = null;
+
   try {
     browser = await chromium.puppeteer.launch({
       args: chromium.args,
@@ -21,18 +25,17 @@ module.exports = async (req, res) => {
     });
 
     const page = await browser.newPage();
-    await page.setViewport({ width: 1080, height: 1350 });
     await page.setContent(html, { waitUntil: 'networkidle0' });
 
-    const screenshotBuffer = await page.screenshot({ type: 'png' });
+    const imageBuffer = await page.screenshot({ type: 'png', fullPage: true });
 
     await browser.close();
 
-    const base64 = screenshotBuffer.toString('base64');
-    res.status(200).json({ image_base64: `data:image/png;base64,${base64}` });
+    res.setHeader('Content-Type', 'image/png');
+    res.status(200).end(imageBuffer);
   } catch (error) {
-    console.error('Image generation failed:', error);
     if (browser) await browser.close();
-    res.status(500).json({ error: 'Failed to generate image' });
+    console.error('Image generation failed:', error);
+    res.status(500).json({ error: 'Image generation failed' });
   }
-};
+}

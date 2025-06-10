@@ -1,14 +1,13 @@
 {
   "name": "html-to-image-api",
   "version": "1.0.0",
-  "main": "index.js",
-  "type": "commonjs",
+  "private": true,
   "scripts": {
     "dev": "vercel dev",
-    "start": "vercel dev"
+    "build": "vercel build",
+    "start": "vercel start"
   },
   "dependencies": {
-    "chrome-aws-lambda": "^10.1.0",
-    "puppeteer-core": "^10.1.0"
+    "puppeteer": "^21.3.8"
   }
 }
