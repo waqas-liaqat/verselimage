@@ -1,6 +1,8 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "api/html-to-image.js", "use": "@vercel/node" }
-  ]
+  "functions": {
+    "api/generate-banner.js": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  }
 }

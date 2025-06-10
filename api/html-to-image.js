@@ -1,35 +1,38 @@
-import { buffer } from 'micro';
-import puppeteer from 'puppeteer';
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+import { readFile } from 'fs/promises';
+import puppeteer from 'puppeteer-core';
+import chrome from 'chrome-aws-lambda';
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).send('Method not allowed');
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  const { html } = req.body;
+  if (!html) {
+    return res.status(400).json({ error: 'HTML content missing' });
+  }
 
   try {
-    const raw = await buffer(req);
-    const { html } = JSON.parse(raw.toString());
-
     const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      headless: 'new',
+      args: chrome.args,
+      executablePath: await chrome.executablePath,
+      headless: chrome.headless,
     });
 
     const page = await browser.newPage();
-    await page.setViewport({ width: 1350, height: 1080 });
+    await page.setViewport({ width: 1080, height: 1350 });
     await page.setContent(html, { waitUntil: 'networkidle0' });
 
-    const image = await page.screenshot({ type: 'png' });
+    const buffer = await page.screenshot({ type: 'png' });
+
     await browser.close();
 
     res.setHeader('Content-Type', 'image/png');
-    res.status(200).send(image);
+    res.setHeader('Content-Disposition', 'inline; filename="banner.png"');
+    return res.end(buffer);
+
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Error rendering image');
+    console.error('Screenshot error:', err);
+    return res.status(500).json({ error: 'Failed to generate image' });
   }
 }
