@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/generate-banner.js": {
+    "api/html-to-image.js": {
       "memory": 1024,
       "maxDuration": 30
     }
