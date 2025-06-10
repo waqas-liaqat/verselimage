@@ -1,38 +1,38 @@
-import { readFile } from 'fs/promises';
-import puppeteer from 'puppeteer-core';
-import chrome from 'chrome-aws-lambda';
+// api/generate-banner.js
 
-export default async function handler(req, res) {
+const chromium = require('chrome-aws-lambda');
+
+module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   const { html } = req.body;
   if (!html) {
-    return res.status(400).json({ error: 'HTML content missing' });
+    return res.status(400).json({ error: 'Missing HTML input' });
   }
 
+  let browser = null;
   try {
-    const browser = await puppeteer.launch({
-      args: chrome.args,
-      executablePath: await chrome.executablePath,
-      headless: chrome.headless,
+    browser = await chromium.puppeteer.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath,
+      headless: chromium.headless,
     });
 
     const page = await browser.newPage();
     await page.setViewport({ width: 1080, height: 1350 });
     await page.setContent(html, { waitUntil: 'networkidle0' });
 
-    const buffer = await page.screenshot({ type: 'png' });
+    const screenshotBuffer = await page.screenshot({ type: 'png' });
 
     await browser.close();
 
-    res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Content-Disposition', 'inline; filename="banner.png"');
-    return res.end(buffer);
-
-  } catch (err) {
-    console.error('Screenshot error:', err);
-    return res.status(500).json({ error: 'Failed to generate image' });
+    const base64 = screenshotBuffer.toString('base64');
+    res.status(200).json({ image_base64: `data:image/png;base64,${base64}` });
+  } catch (error) {
+    console.error('Image generation failed:', error);
+    if (browser) await browser.close();
+    res.status(500).json({ error: 'Failed to generate image' });
   }
-}
+};
